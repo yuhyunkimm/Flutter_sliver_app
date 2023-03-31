@@ -12,7 +12,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       home: HomePage(),
     );
   }
@@ -24,64 +23,61 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 스크롤이 될때 행동,방향 등... 모두 지시 할 수 있다
       body: CustomScrollView(
-        // 계산(스크롤시?)
         slivers: [
           SliverAppBar(
-            // snap은 floating과 함께 쓴다
             snap: true,
             floating: true,
             title: Text("SliverAppbar"),
-            // appbar 고정 여부
             pinned: false,
-            // appbar 높이를 늘림
             expandedHeight: 250,
-            // 기본 appbar 높이 60이다
             flexibleSpace: Container(
-              child: Text(
-                "FlexiblaSpace",
-                style: TextStyle(fontSize: 50),
+              child: Center(
+                child: Text(
+                  "FlexibleSpace",
+                  style: TextStyle(fontSize: 50),
+                ),
               ),
             ),
           ),
           SliverAppBar(
-            title: Text("SliverAppbar"),
-            // appbar 고정 여부
+            title: Text("SliverSubAppbar"),
             pinned: true,
-            // appbar 높이를 늘림
-            //expandedHeight: 250,
           ),
-          // SliverChildListDelegate : 무조건
-          // Sliver사이에 박스를 넣고 싶을 때 사용
+          SliverPersistentHeader(
+            delegate: MyPersistentHeaderDelegate(
+              minHeight: 60.0,
+              maxHeight: 200.0,
+            ),
+            pinned: true,
+          ),
           SliverToBoxAdapter(
             child: Container(
-              color: Colors.red,
               height: 200,
+              color: Colors.red,
             ),
           ),
-          // CustomScrollView(
-          //   scrollDirection: Axis.horizontal,
-          //   slivers: [
-          //     SliverList(delegate: SliverChildListDelegate(
-          //       [
-          //         Text("1"),
-          //         Text("2"),
-          //         Text("3"),
-          //       ]
-          //     ),
-          //     ),
-          //   ],
-          // ),
+          buildSliverFillViewport(),
+          SliverGrid.builder(
+            itemCount: 6,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3, mainAxisSpacing: 10, crossAxisSpacing: 10),
+            itemBuilder: (context, index) {
+              return Container(
+                color: Colors.grey,
+                child: Text("$index"),
+              );
+            },
+          ),
           SliverFixedExtentList(
             itemExtent: 100,
             delegate: SliverChildBuilderDelegate(
               childCount: 50,
-              (context, index) {
+                  (context, index) {
                 if (index % 4 == 0 && index != 0) {
-                  return Ad(index: (index / 4).toInt());
+                  return Ad((index / 4).toInt());
                 } else {
-                  return Diary(index: index);
+                  return Diary(index);
                 }
               },
             ),
@@ -91,20 +87,55 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  SliverList buildSliverList() {
-    return SliverList(
-      // SliverChildBuilderDelegate - Builder라서 재활용
+  SliverFillViewport buildSliverFillViewport() {
+    return SliverFillViewport(
       delegate: SliverChildBuilderDelegate(
-        (context, index) {
+        childCount: 2,
+            (context, index) {
           return Container(
-            height: 100,
+            height: 50,
             alignment: Alignment.center,
-            // 조도는 1~9 까지 % 를 붙혀줘야한다
             color: Colors.lightBlue[100 * (index % 9)],
             child: Text("List Item $index"),
           );
         },
       ),
     );
+  }
+}
+
+
+class MyPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final double minHeight;
+  final double maxHeight;
+
+  MyPersistentHeaderDelegate({
+    required this.minHeight,
+    required this.maxHeight,
+  });
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: Colors.blueGrey,
+      child: Center(
+        child: Text(
+          'SliverPersistentHeader',
+          style: TextStyle(fontSize: 20.0, color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => maxHeight;
+
+  @override
+  double get minExtent => minHeight;
+
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
+    return true;
   }
 }
